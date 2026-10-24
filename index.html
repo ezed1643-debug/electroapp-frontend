@@ -62,7 +62,8 @@
     </div>
 
     <div class="contenido">
-        <iframe name="marco_principal" id="iframePrincipal" src="inventario.html"></iframe>
+        <!-- El atributo onload asegura que al cambiar de pestaña, se mantenga el color -->
+        <iframe name="marco_principal" id="iframePrincipal" src="inventario.html" onload="sincronizarTemaIframe()"></iframe>
     </div>
 </div>
 
@@ -81,11 +82,19 @@
         document.getElementById('btnTema').innerText = esOscuro ? "☀️ Modo Claro" : "🌙 Modo Oscuro";
         localStorage.setItem('tema', temaActual);
         
-        const iframe = document.getElementById('iframePrincipal');
-        iframe.contentWindow.postMessage({ tema: temaActual }, '*');
+        sincronizarTemaIframe();
     }
 
-    // 3. Registrar el Service Worker para la PWA
+    // 3. Forzar sincronización de color en el Iframe
+    function sincronizarTemaIframe() {
+        const temaActual = localStorage.getItem('tema') || 'claro';
+        const iframe = document.getElementById('iframePrincipal');
+        if (iframe && iframe.contentWindow) {
+            iframe.contentWindow.postMessage({ tema: temaActual }, '*');
+        }
+    }
+
+    // 4. Registrar el Service Worker para la PWA
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('sw.js')
