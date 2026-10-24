@@ -19,7 +19,7 @@
         .cargando { background-color: #fff3cd; color: #856404; border: 1px solid #ffeeba; display: none; text-align: center; padding: 15px; margin-top: 20px; border-radius: 5px; font-weight: bold; }
     </style>
 
-    <!-- ================= INICIO MODO OSCURO ================= -->
+    <!-- ================= INICIO MODO OSCURO INDESTRUCTIBLE ================= -->
     <style>
         body.dark-mode { background-color: #121212; color: #e0e0e0; }
         body.dark-mode .contenedor, 
@@ -37,14 +37,30 @@
         body.dark-mode .cargando { background-color: #5a4b18; color: #fadd70; border-color: #8c7322; }
     </style>
     <script>
-        if (localStorage.getItem('tema') === 'oscuro') {
-            document.documentElement.classList.add('dark-mode');
-        }
-        document.addEventListener("DOMContentLoaded", () => {
+        function blindarModoOscuro() {
+            try {
+                // 1. Preguntarle directamente al menú padre de qué color está (Infalible)
+                if (window.parent && window.parent.document.body.classList.contains('dark-mode')) {
+                    document.documentElement.classList.add('dark-mode');
+                    if (document.body) document.body.classList.add('dark-mode');
+                    return;
+                }
+            } catch(e) {}
+            
+            // 2. Si el padre falla, leemos la memoria local
             if (localStorage.getItem('tema') === 'oscuro') {
-                document.body.classList.add('dark-mode');
+                document.documentElement.classList.add('dark-mode');
+                if (document.body) document.body.classList.add('dark-mode');
             }
-        });
+        }
+
+        // Ejecutar apenas carga
+        blindarModoOscuro();
+        document.addEventListener("DOMContentLoaded", blindarModoOscuro);
+        
+        // Obligar al sistema a re-evaluar el color cada vez que haces clic (ej: en el botón de guardar)
+        document.addEventListener("click", blindarModoOscuro);
+
         window.addEventListener('message', (event) => {
             if (event.data.tema === 'oscuro') {
                 document.documentElement.classList.add('dark-mode');
@@ -55,7 +71,7 @@
             }
         });
     </script>
-    <!-- ================= FIN MODO OSCURO ================= -->
+    <!-- ================= FIN MODO OSCURO INDESTRUCTIBLE ================= -->
 </head>
 <body>
 
@@ -80,6 +96,8 @@
 
 <script>
     async function guardarComponente() {
+        // Al hacer clic se activa blindarModoOscuro() automáticamente, evitando que se ponga blanco
+        
         const mpn = document.getElementById("mpn").value;
         const nombre = document.getElementById("nombre").value;
         const stock = document.getElementById("stock").value;
