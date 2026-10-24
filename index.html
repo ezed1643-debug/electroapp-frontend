@@ -3,6 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <title>ElectroApp - Dashboard</title>
+    
+    <!-- Etiquetas PWA -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0056b3">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <style>
         body, html { margin: 0; padding: 0; height: 100%; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; overflow: hidden; transition: background-color 0.3s; }
         .dashboard { display: flex; height: 100vh; width: 100vw; }
@@ -28,6 +34,17 @@
         body.dark-mode .sidebar-menu a:hover { background-color: #0f3460; }
         body.dark-mode .contenido { background-color: #121212; }
         body.dark-mode .btn-oscuro { background-color: #0f3460; }
+
+        /* Adaptación para pantallas pequeñas (Celulares) */
+        @media (max-width: 768px) {
+            .dashboard { flex-direction: column; }
+            .sidebar { width: 100%; height: auto; flex-direction: row; flex-wrap: wrap; }
+            .sidebar-header { width: 100%; padding: 10px; }
+            .sidebar-menu { display: flex; width: 100%; overflow-x: auto; }
+            .sidebar-menu li { flex: 1; text-align: center; }
+            .sidebar-menu a { padding: 10px; font-size: 14px; white-space: nowrap; }
+            .btn-oscuro { width: 100%; text-align: center; padding: 10px; }
+        }
     </style>
 </head>
 <body>
@@ -36,12 +53,11 @@
     <div class="sidebar">
         <div class="sidebar-header">⚡ ElectroApp</div>
         <ul class="sidebar-menu">
-            <li><a href="inventario.html" target="marco_principal">📦 Inventario General</a></li>
-            <li><a href="nuevo_componente.html" target="marco_principal">➕ Agregar Componente</a></li>
-            <li><a href="proyectos.html" target="marco_principal">🛠️ Gestión de Proyectos</a></li>
-            <li><a href="herramientas.html" target="marco_principal">🧮 Herramientas y Cálculos</a></li>
+            <li><a href="inventario.html" target="marco_principal">📦 Inventario</a></li>
+            <li><a href="nuevo_componente.html" target="marco_principal">➕ Agregar</a></li>
+            <li><a href="proyectos.html" target="marco_principal">🛠️ Proyectos</a></li>
+            <li><a href="herramientas.html" target="marco_principal">🧮 Utilidades</a></li>
         </ul>
-        <!-- Botón añadido al final del menú -->
         <button class="btn-oscuro" onclick="toggleTema()" id="btnTema">🌙 Modo Oscuro</button>
     </div>
 
@@ -51,26 +67,31 @@
 </div>
 
 <script>
-    // 1. Aplicar tema al cargar la página principal
+    // 1. Aplicar tema al cargar la página
     if (localStorage.getItem('tema') === 'oscuro') {
         document.body.classList.add('dark-mode');
         document.getElementById('btnTema').innerText = "☀️ Modo Claro";
     }
 
-    // 2. Función del botón para alternar
+    // 2. Función del botón para alternar Modo Oscuro
     function toggleTema() {
         const esOscuro = document.body.classList.toggle('dark-mode');
         const temaActual = esOscuro ? 'oscuro' : 'claro';
         
-        // Cambiar el texto del botón
         document.getElementById('btnTema').innerText = esOscuro ? "☀️ Modo Claro" : "🌙 Modo Oscuro";
-        
-        // Guardar en el navegador
         localStorage.setItem('tema', temaActual);
         
-        // Avisar a la página que está dentro del iframe
         const iframe = document.getElementById('iframePrincipal');
         iframe.contentWindow.postMessage({ tema: temaActual }, '*');
+    }
+
+    // 3. Registrar el Service Worker para la PWA
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js')
+          .then(reg => console.log('Service Worker registrado con éxito'))
+          .catch(err => console.log('Error al registrar Service Worker:', err));
+      });
     }
 </script>
 </body>
