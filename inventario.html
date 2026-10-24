@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Inventario de Componentes</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; padding: 20px; transition: 0.3s; }
+        .contenedor { max-width: 1000px; margin: 0 auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: 0.3s; }
+        .cabecera { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #0056b3; padding-bottom: 10px; margin-bottom: 20px; transition: 0.3s; }
+        h2 { color: #333; margin: 0; }
+        .buscador { padding: 10px 15px; width: 300px; border: 1px solid #ccc; border-radius: 20px; font-size: 16px; outline: none; transition: 0.3s; }
+        .buscador:focus { border-color: #0056b3; box-shadow: 0 0 5px rgba(0,86,179,0.3); }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; transition: 0.3s; }
+        th { background-color: #0056b3; color: white; }
+        tr:hover { background-color: #f1f1f1; }
+        a { color: #0056b3; text-decoration: none; font-weight: bold; }
+        a:hover { text-decoration: underline; }
+        button { background-color: #28a745; color: white; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; transition: 0.3s; }
+        button:hover { background-color: #218838; }
+
+        /* Modal para Especificaciones */
+        #modalSpecs { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 100; }
+        .modal-contenido { background: white; width: 50%; margin: 10% auto; padding: 20px; border-radius: 10px; position: relative; transition: 0.3s; }
+        .cerrar { position: absolute; top: 10px; right: 15px; font-size: 20px; cursor: pointer; color: red; }
+        .tabla-specs { width: 100%; margin-top: 15px; border: 1px solid #ccc; }
+        .tabla-specs th { background-color: #6c757d; }
+    </style>
+
+    <!-- ================= INICIO MODO OSCURO ================= -->
+    <style>
+        body.dark-mode { background-color: #121212; color: #e0e0e0; }
+        body.dark-mode .contenedor, 
+        body.dark-mode .tarjeta, 
+        body.dark-mode .modal-contenido { background-color: #1e1e2d; color: #fff; box-shadow: 0 4px 6px rgba(0,0,0,0.5); }
+        body.dark-mode h2, body.dark-mode h3 { color: #4da3ff; border-bottom-color: #0f3460; }
+        body.dark-mode th { background-color: #0f3460; color: white; border-bottom: none; }
+        body.dark-mode td { border-bottom-color: #2a2a35; }
+        body.dark-mode tr:hover { background-color: #2a2a35; }
+        body.dark-mode input, body.dark-mode select { background-color: #2a2a35; color: white; border: 1px solid #444; }
+        body.dark-mode input:focus, body.dark-mode select:focus { border-color: #4da3ff; }
+        body.dark-mode .tabla-specs { border-color: #444; }
+        body.dark-mode .tabla-specs th { background-color: #333; }
+        body.dark-mode .cerrar { color: #ff6b6b; }
+        body.dark-mode a { color: #4da3ff; }
+    </style>
+    <script>
+        if (localStorage.getItem('tema') === 'oscuro') {
+            document.documentElement.classList.add('dark-mode');
+            document.body.classList.add('dark-mode');
+        }
+        window.addEventListener('message', (event) => {
+            if (event.data.tema === 'oscuro') {
+                document.body.classList.add('dark-mode');
+            } else if (event.data.tema === 'claro') {
+                document.body.classList.remove('dark-mode');
+            }
+        });
+    </script>
+    <!-- ================= FIN MODO OSCURO ================= -->
+</head>
+<body>
+
+<div class="contenedor">
+    <div class="cabecera">
+        <h2>📦 Inventario General</h2>
+        <input type="text" id="inputBuscador" class="buscador" placeholder="🔍 Buscar por MPN o Nombre..." oninput="filtrarTabla()">
+    </div>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>MPN</th>
+                <th>Nombre</th>
+                <th>Stock</th>
+                <th>Datasheet</th>
+                <th>Detalles Técnicos</th>
+            </tr>
+        </thead>
+        <tbody id="cuerpoTabla">
+        </tbody>
+    </table>
+</div>
+
+<div id="modalSpecs">
+    <div class="modal-contenido">
+        <span class="cerrar" onclick="cerrarModal()">✖</span>
+        <h3 id="tituloModal">Especificaciones</h3>
+        <table class="tabla-specs">
+            <thead>
+                <tr>
+                    <th>Parámetro</th>
+                    <th>Valor</th>
+                </tr>
+            </thead>
+            <tbody id="cuerpoSpecs">
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    let componentesDB = [];
+    const API_URL = 'https://electro-api-backend.onrender.com';
+
+    async function cargarDatosDesdeServidor() {
+        const cuerpo = document.getElementById("cuerpoTabla");
+        cuerpo.innerHTML = "<tr><td colspan='5' style='text-align:center;'>Cargando inventario...</td></tr>";
+
+        try {
+            const respuesta = await fetch(`${API_URL}/componentes`);
+            if (!respuesta.ok) throw new Error(`Error HTTP: ${respuesta.status}`);
+            
+            componentesDB = await respuesta.json();
+            renderizarTabla(componentesDB);
+        } catch (error) {
+            cuerpo.innerHTML = `<tr><td colspan='5' style='text-align:center; color:red;'>❌ Error conectando al servidor en ${API_URL}.</td></tr>`;
+        }
+    }
+
+    function renderizarTabla(datos) {
+        const cuerpo = document.getElementById("cuerpoTabla");
+        cuerpo.innerHTML = ""; 
+
+        if (datos.length === 0) {
+            cuerpo.innerHTML = "<tr><td colspan='5' style='text-align:center;'>No hay componentes.</td></tr>";
+            return;
+        }
+
+        datos.forEach(comp => {
+            let fila = `<tr>
+                <td><strong>${comp.mpn}</strong></td>
+                <td>${comp.nombre}</td>
+                <td style="${comp.stock <= 5 ? 'color: #ff6b6b; font-weight: bold;' : ''}">${comp.stock}</td>
+                <td>${comp.datasheet_url ? `<a href="${comp.datasheet_url}" target="_blank">📄 Ver PDF</a>` : 'Sin PDF'}</td>
+                <td><button onclick='verEspecificaciones(${comp.id})'>🔍 Specs</button></td>
+            </tr>`;
+            cuerpo.innerHTML += fila;
+        });
+    }
+
+    function filtrarTabla() {
+        const texto = document.getElementById("inputBuscador").value.toLowerCase();
+        const filtrados = componentesDB.filter(comp => 
+            comp.mpn.toLowerCase().includes(texto) || comp.nombre.toLowerCase().includes(texto)
+        );
+        renderizarTabla(filtrados);
+    }
+
+    function verEspecificaciones(id) {
+        const comp = componentesDB.find(c => c.id === id);
+        document.getElementById("tituloModal").innerText = `Especificaciones de: ${comp.mpn}`;
+        const cuerpoSpecs = document.getElementById("cuerpoSpecs");
+        cuerpoSpecs.innerHTML = "";
+        
+        try {
+            if(comp.especificaciones && comp.especificaciones !== "{}") {
+                let specsObj = JSON.parse(comp.especificaciones);
+                for (const [parametro, valor] of Object.entries(specsObj)) {
+                    cuerpoSpecs.innerHTML += `<tr><td><strong>${parametro}</strong></td><td>${valor}</td></tr>`;
+                }
+            } else {
+                cuerpoSpecs.innerHTML = "<tr><td colspan='2'>No hay especificaciones registradas.</td></tr>";
+            }
+        } catch(e) {
+            cuerpoSpecs.innerHTML = "<tr><td colspan='2'>Error leyendo datos.</td></tr>";
+        }
+        document.getElementById("modalSpecs").style.display = "block";
+    }
+
+    function cerrarModal() {
+        document.getElementById("modalSpecs").style.display = "none";
+    }
+
+    window.onload = cargarDatosDesdeServidor;
+</script>
+</body>
+</html>

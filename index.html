@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>ElectroApp - Dashboard</title>
+    <style>
+        body, html { margin: 0; padding: 0; height: 100%; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; overflow: hidden; transition: background-color 0.3s; }
+        .dashboard { display: flex; height: 100vh; width: 100vw; }
+        
+        /* Sidebar base */
+        .sidebar { width: 260px; background-color: #0056b3; color: white; display: flex; flex-direction: column; z-index: 10; transition: 0.3s; }
+        .sidebar-header { padding: 20px; text-align: center; background-color: #004494; font-size: 24px; font-weight: bold; border-bottom: 1px solid #003377; transition: 0.3s; }
+        .sidebar-menu { list-style: none; padding: 0; margin: 0; flex-grow: 1; }
+        .sidebar-menu li { border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .sidebar-menu a { display: block; color: white; text-decoration: none; padding: 18px 20px; font-size: 16px; transition: 0.3s; }
+        .sidebar-menu a:hover { background-color: #003377; border-left: 5px solid #ffc107; }
+        
+        /* Botón Modo Oscuro */
+        .btn-oscuro { background-color: rgba(0,0,0,0.2); color: white; border: none; padding: 15px; font-size: 16px; cursor: pointer; transition: 0.3s; text-align: left; padding-left: 20px; }
+        .btn-oscuro:hover { background-color: rgba(0,0,0,0.4); }
+
+        .contenido { flex-grow: 1; background-color: #f0f2f5; position: relative; transition: 0.3s; }
+        iframe { width: 100%; height: 100%; border: none; display: block; }
+
+        /* --- REGLAS MODO OSCURO (Dashboard) --- */
+        body.dark-mode .sidebar { background-color: #1a1a2e; }
+        body.dark-mode .sidebar-header { background-color: #16213e; border-bottom-color: #0f3460; }
+        body.dark-mode .sidebar-menu a:hover { background-color: #0f3460; }
+        body.dark-mode .contenido { background-color: #121212; }
+        body.dark-mode .btn-oscuro { background-color: #0f3460; }
+    </style>
+</head>
+<body>
+
+<div class="dashboard">
+    <div class="sidebar">
+        <div class="sidebar-header">⚡ ElectroApp</div>
+        <ul class="sidebar-menu">
+            <li><a href="inventario.html" target="marco_principal">📦 Inventario General</a></li>
+            <li><a href="nuevo_componente.html" target="marco_principal">➕ Agregar Componente</a></li>
+            <li><a href="proyectos.html" target="marco_principal">🛠️ Gestión de Proyectos</a></li>
+            <li><a href="herramientas.html" target="marco_principal">🧮 Herramientas y Cálculos</a></li>
+        </ul>
+        <!-- Botón añadido al final del menú -->
+        <button class="btn-oscuro" onclick="toggleTema()" id="btnTema">🌙 Modo Oscuro</button>
+    </div>
+
+    <div class="contenido">
+        <iframe name="marco_principal" id="iframePrincipal" src="inventario.html"></iframe>
+    </div>
+</div>
+
+<script>
+    // 1. Aplicar tema al cargar la página principal
+    if (localStorage.getItem('tema') === 'oscuro') {
+        document.body.classList.add('dark-mode');
+        document.getElementById('btnTema').innerText = "☀️ Modo Claro";
+    }
+
+    // 2. Función del botón para alternar
+    function toggleTema() {
+        const esOscuro = document.body.classList.toggle('dark-mode');
+        const temaActual = esOscuro ? 'oscuro' : 'claro';
+        
+        // Cambiar el texto del botón
+        document.getElementById('btnTema').innerText = esOscuro ? "☀️ Modo Claro" : "🌙 Modo Oscuro";
+        
+        // Guardar en el navegador
+        localStorage.setItem('tema', temaActual);
+        
+        // Avisar a la página que está dentro del iframe
+        const iframe = document.getElementById('iframePrincipal');
+        iframe.contentWindow.postMessage({ tema: temaActual }, '*');
+    }
+</script>
+</body>
+</html>
