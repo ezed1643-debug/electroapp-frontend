@@ -2,11 +2,12 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Agregar Componente</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; padding: 20px; transition: 0.3s; }
-        .contenedor { max-width: 600px; margin: 0 auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: 0.3s; }
-        h2 { color: #333; border-bottom: 2px solid #0056b3; padding-bottom: 10px; transition: 0.3s; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; padding: 20px; transition: 0.3s; margin: 0; }
+        .contenedor { max-width: 600px; margin: 0 auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: 0.3s; box-sizing: border-box; width: 100%; }
+        h2 { color: #333; border-bottom: 2px solid #0056b3; padding-bottom: 10px; transition: 0.3s; font-size: 20px; }
         label { font-weight: bold; margin-top: 10px; display: block; color: #555; }
         input { width: 100%; padding: 10px; margin: 5px 0 20px 0; border-radius: 5px; border: 1px solid #ccc; font-size: 16px; box-sizing: border-box; transition: 0.3s; }
         button { background-color: #28a745; color: white; border: none; padding: 12px; border-radius: 5px; cursor: pointer; width: 100%; font-size: 16px; font-weight: bold; transition: 0.3s; }
@@ -22,15 +23,10 @@
     <!-- ================= INICIO MODO OSCURO INDESTRUCTIBLE ================= -->
     <style>
         body.dark-mode { background-color: #121212; color: #e0e0e0; }
-        body.dark-mode .contenedor, 
-        body.dark-mode .tarjeta, 
-        body.dark-mode .modal-contenido { background-color: #1e1e2d; color: #fff; box-shadow: 0 4px 6px rgba(0,0,0,0.5); }
-        body.dark-mode h2, body.dark-mode h3 { color: #4da3ff; border-bottom-color: #0f3460; }
-        body.dark-mode th { background-color: #0f3460; color: white; border-bottom: none; }
-        body.dark-mode td { border-bottom-color: #2a2a35; }
-        body.dark-mode tr:hover { background-color: #2a2a35; }
-        body.dark-mode input, body.dark-mode select { background-color: #2a2a35; color: white; border: 1px solid #444; }
-        body.dark-mode input:focus, body.dark-mode select:focus { border-color: #4da3ff; }
+        body.dark-mode .contenedor { background-color: #1e1e2d; color: #fff; box-shadow: 0 4px 6px rgba(0,0,0,0.5); }
+        body.dark-mode h2 { color: #4da3ff; border-bottom-color: #0f3460; }
+        body.dark-mode input { background-color: #2a2a35; color: white; border: 1px solid #444; }
+        body.dark-mode input:focus { border-color: #4da3ff; }
         body.dark-mode label { color: #aaa; }
         body.dark-mode .exito { background-color: #1b4332; color: #74c69d; border-color: #2d6a4f; }
         body.dark-mode .error { background-color: #5c1a1b; color: #ff9999; border-color: #8a2527; }
@@ -39,28 +35,20 @@
     <script>
         function blindarModoOscuro() {
             try {
-                // 1. Preguntarle directamente al menú padre de qué color está (Infalible)
                 if (window.parent && window.parent.document.body.classList.contains('dark-mode')) {
                     document.documentElement.classList.add('dark-mode');
                     if (document.body) document.body.classList.add('dark-mode');
                     return;
                 }
             } catch(e) {}
-            
-            // 2. Si el padre falla, leemos la memoria local
             if (localStorage.getItem('tema') === 'oscuro') {
                 document.documentElement.classList.add('dark-mode');
                 if (document.body) document.body.classList.add('dark-mode');
             }
         }
-
-        // Ejecutar apenas carga
         blindarModoOscuro();
         document.addEventListener("DOMContentLoaded", blindarModoOscuro);
-        
-        // Obligar al sistema a re-evaluar el color cada vez que haces clic (ej: en el botón de guardar)
         document.addEventListener("click", blindarModoOscuro);
-
         window.addEventListener('message', (event) => {
             if (event.data.tema === 'oscuro') {
                 document.documentElement.classList.add('dark-mode');
@@ -77,7 +65,7 @@
 
 <div class="contenedor">
     <h2>➕ Agregar al Inventario (Auto-Datasheet)</h2>
-    <p>Ingresa el MPN exacto. El sistema buscará el datasheet y especificaciones automáticamente.</p>
+    <p>Ingresa el MPN exacto. El sistema buscará el datasheet automáticamente.</p>
     
     <label>Manufacturer Part Number (MPN):</label>
     <input type="text" id="mpn" placeholder="Ej: LM358P" required>
@@ -96,8 +84,6 @@
 
 <script>
     async function guardarComponente() {
-        // Al hacer clic se activa blindarModoOscuro() automáticamente, evitando que se ponga blanco
-        
         const mpn = document.getElementById("mpn").value;
         const nombre = document.getElementById("nombre").value;
         const stock = document.getElementById("stock").value;
@@ -105,10 +91,7 @@
         const divCargando = document.getElementById("cargando");
         const divMensaje = document.getElementById("mensaje");
 
-        if(!mpn || !nombre) {
-            alert("Por favor llena el MPN y el Nombre.");
-            return;
-        }
+        if(!mpn || !nombre) { alert("Por favor llena el MPN y el Nombre."); return; }
 
         btn.disabled = true;
         divMensaje.style.display = "none";
@@ -120,7 +103,6 @@
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ mpn: mpn, nombre: nombre, stock: parseInt(stock) })
             });
-            
             const data = await respuesta.json();
             
             divCargando.style.display = "none";
@@ -140,9 +122,8 @@
             divCargando.style.display = "none";
             divMensaje.style.display = "block";
             divMensaje.className = "mensaje error";
-            divMensaje.innerText = "❌ Error de conexión con el servidor en la nube.";
+            divMensaje.innerText = "❌ Error de conexión con el servidor.";
         }
-        
         btn.disabled = false;
     }
 </script>
