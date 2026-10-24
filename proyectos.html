@@ -51,13 +51,19 @@
     <script>
         if (localStorage.getItem('tema') === 'oscuro') {
             document.documentElement.classList.add('dark-mode');
-            document.body.classList.add('dark-mode');
         }
+        document.addEventListener("DOMContentLoaded", () => {
+            if (localStorage.getItem('tema') === 'oscuro') {
+                document.body.classList.add('dark-mode');
+            }
+        });
         window.addEventListener('message', (event) => {
             if (event.data.tema === 'oscuro') {
-                document.body.classList.add('dark-mode');
+                document.documentElement.classList.add('dark-mode');
+                if (document.body) document.body.classList.add('dark-mode');
             } else if (event.data.tema === 'claro') {
-                document.body.classList.remove('dark-mode');
+                document.documentElement.classList.remove('dark-mode');
+                if (document.body) document.body.classList.remove('dark-mode');
             }
         });
     </script>
