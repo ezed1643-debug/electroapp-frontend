@@ -2,51 +2,61 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Inventario de Componentes</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; padding: 20px; transition: 0.3s; }
-        .contenedor { max-width: 1000px; margin: 0 auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: 0.3s; }
-        .cabecera { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #0056b3; padding-bottom: 10px; margin-bottom: 20px; transition: 0.3s; }
-        h2 { color: #333; margin: 0; }
-        .buscador { padding: 10px 15px; width: 300px; border: 1px solid #ccc; border-radius: 20px; font-size: 16px; outline: none; transition: 0.3s; }
-        .buscador:focus { border-color: #0056b3; box-shadow: 0 0 5px rgba(0,86,179,0.3); }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; transition: 0.3s; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; padding: 15px; margin: 0; box-sizing: border-box; transition: 0.3s; }
+        .contenedor { width: 100%; max-width: 1000px; margin: 0 auto; background: white; padding: 15px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); box-sizing: border-box; transition: 0.3s; }
+        
+        /* Solución para Celulares: Tabla deslizable sin romper la pantalla */
+        .tabla-responsiva { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; margin-top: 15px; }
+        
+        .cabecera { display: flex; flex-direction: column; gap: 10px; border-bottom: 2px solid #0056b3; padding-bottom: 10px; transition: 0.3s; }
+        @media(min-width: 768px) { .cabecera { flex-direction: row; justify-content: space-between; align-items: center; } }
+        
+        h2 { color: #333; margin: 0; font-size: 20px; }
+        .buscador { padding: 10px; width: 100%; max-width: 300px; border: 1px solid #ccc; border-radius: 20px; font-size: 16px; outline: none; box-sizing: border-box; transition: 0.3s; }
+        
+        table { width: 100%; border-collapse: collapse; min-width: 600px; }
+        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; transition: 0.3s; font-size: 14px; }
         th { background-color: #0056b3; color: white; }
         tr:hover { background-color: #f1f1f1; }
         a { color: #0056b3; text-decoration: none; font-weight: bold; }
-        a:hover { text-decoration: underline; }
-        button { background-color: #28a745; color: white; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; transition: 0.3s; margin-right: 5px; }
-        button:hover { background-color: #218838; }
         
-        .btn-borrar { background-color: #dc3545; }
+        /* Botones generales */
+        button { border: none; border-radius: 5px; cursor: pointer; transition: 0.3s; }
+        .btn-accion { background-color: #28a745; color: white; padding: 6px 10px; margin-right: 5px; }
+        .btn-accion:hover { background-color: #218838; }
+        .btn-borrar { background-color: #dc3545; color: white; padding: 6px 10px; }
         .btn-borrar:hover { background-color: #c82333; }
+        
+        /* Botones de Stock (Flechas) */
+        .controles-stock { display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: bold; }
+        .btn-stock { background-color: #e9ecef; color: #333; padding: 4px 8px; font-size: 12px; border-radius: 4px; box-shadow: 0 2px 2px rgba(0,0,0,0.1); }
+        .btn-stock:hover { background-color: #d3d9df; }
+        .btn-stock:disabled { opacity: 0.5; cursor: not-allowed; }
 
-        /* Modal para Especificaciones */
         #modalSpecs { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 100; }
-        .modal-contenido { background: white; width: 50%; margin: 10% auto; padding: 20px; border-radius: 10px; position: relative; transition: 0.3s; }
+        .modal-contenido { background: white; width: 90%; max-width: 500px; margin: 10% auto; padding: 20px; border-radius: 10px; position: relative; transition: 0.3s; box-sizing: border-box; }
         .cerrar { position: absolute; top: 10px; right: 15px; font-size: 20px; cursor: pointer; color: red; }
-        .tabla-specs { width: 100%; margin-top: 15px; border: 1px solid #ccc; }
+        .tabla-specs { width: 100%; margin-top: 15px; border: 1px solid #ccc; min-width: 100%; }
         .tabla-specs th { background-color: #6c757d; }
     </style>
 
     <!-- ================= INICIO MODO OSCURO INDESTRUCTIBLE ================= -->
     <style>
         body.dark-mode { background-color: #121212; color: #e0e0e0; }
-        body.dark-mode .contenedor, 
-        body.dark-mode .tarjeta, 
-        body.dark-mode .modal-contenido { background-color: #1e1e2d; color: #fff; box-shadow: 0 4px 6px rgba(0,0,0,0.5); }
+        body.dark-mode .contenedor, body.dark-mode .modal-contenido { background-color: #1e1e2d; color: #fff; box-shadow: 0 4px 6px rgba(0,0,0,0.5); }
         body.dark-mode h2, body.dark-mode h3 { color: #4da3ff; border-bottom-color: #0f3460; }
         body.dark-mode th { background-color: #0f3460; color: white; border-bottom: none; }
         body.dark-mode td { border-bottom-color: #2a2a35; }
         body.dark-mode tr:hover { background-color: #2a2a35; }
-        body.dark-mode input, body.dark-mode select { background-color: #2a2a35; color: white; border: 1px solid #444; }
-        body.dark-mode input:focus, body.dark-mode select:focus { border-color: #4da3ff; }
+        body.dark-mode input { background-color: #2a2a35; color: white; border: 1px solid #444; }
+        body.dark-mode input:focus { border-color: #4da3ff; }
         body.dark-mode .tabla-specs { border-color: #444; }
         body.dark-mode .tabla-specs th { background-color: #333; }
-        body.dark-mode .cerrar { color: #ff6b6b; }
-        body.dark-mode a { color: #4da3ff; }
-        body.dark-mode .btn-borrar { background-color: #8a2527; color: #ff9999; }
+        body.dark-mode .btn-stock { background-color: #333; color: white; }
+        body.dark-mode .btn-stock:hover { background-color: #555; }
     </style>
     <script>
         function blindarModoOscuro() {
@@ -85,35 +95,33 @@
         <input type="text" id="inputBuscador" class="buscador" placeholder="🔍 Buscar por MPN o Nombre..." oninput="filtrarTabla()">
     </div>
     
-    <table>
-        <thead>
-            <tr>
-                <th>MPN</th>
-                <th>Nombre</th>
-                <th>Stock</th>
-                <th>Datasheet</th>
-                <th>Acciones</th>
-            </tr>
-        </thead>
-        <tbody id="cuerpoTabla">
-        </tbody>
-    </table>
+    <div class="tabla-responsiva">
+        <table>
+            <thead>
+                <tr>
+                    <th>MPN</th>
+                    <th>Nombre</th>
+                    <th>Stock</th>
+                    <th>Datasheet</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="cuerpoTabla">
+            </tbody>
+        </table>
+    </div>
 </div>
 
 <div id="modalSpecs">
     <div class="modal-contenido">
         <span class="cerrar" onclick="cerrarModal()">✖</span>
         <h3 id="tituloModal">Especificaciones</h3>
-        <table class="tabla-specs">
-            <thead>
-                <tr>
-                    <th>Parámetro</th>
-                    <th>Valor</th>
-                </tr>
-            </thead>
-            <tbody id="cuerpoSpecs">
-            </tbody>
-        </table>
+        <div class="tabla-responsiva">
+            <table class="tabla-specs">
+                <thead><tr><th>Parámetro</th><th>Valor</th></tr></thead>
+                <tbody id="cuerpoSpecs"></tbody>
+            </table>
+        </div>
     </div>
 </div>
 
@@ -127,93 +135,90 @@
 
         try {
             const respuesta = await fetch(`${API_URL}/componentes`);
-            if (!respuesta.ok) throw new Error(`Error HTTP: ${respuesta.status}`);
-            
+            if (!respuesta.ok) throw new Error(`Error HTTP`);
             componentesDB = await respuesta.json();
             renderizarTabla(componentesDB);
         } catch (error) {
-            cuerpo.innerHTML = `<tr><td colspan='5' style='text-align:center; color:red;'>❌ Error conectando al servidor en ${API_URL}.</td></tr>`;
+            cuerpo.innerHTML = `<tr><td colspan='5' style='text-align:center; color:red;'>❌ Error conectando al servidor.</td></tr>`;
         }
     }
 
     function renderizarTabla(datos) {
         const cuerpo = document.getElementById("cuerpoTabla");
         cuerpo.innerHTML = ""; 
-
-        if (datos.length === 0) {
-            cuerpo.innerHTML = "<tr><td colspan='5' style='text-align:center;'>No hay componentes.</td></tr>";
-            return;
-        }
+        if (datos.length === 0) { cuerpo.innerHTML = "<tr><td colspan='5' style='text-align:center;'>No hay componentes.</td></tr>"; return; }
 
         datos.forEach(comp => {
             let fila = `<tr>
                 <td><strong>${comp.mpn}</strong></td>
                 <td>${comp.nombre}</td>
-                <td style="${comp.stock <= 5 ? 'color: #ff6b6b; font-weight: bold;' : ''}">${comp.stock}</td>
+                <td>
+                    <div class="controles-stock">
+                        <button class="btn-stock" onclick="modificarStock(${comp.id}, ${comp.stock - 1})" ${comp.stock <= 0 ? 'disabled' : ''}>🔽</button>
+                        <span style="${comp.stock <= 5 ? 'color: #ff6b6b;' : ''}">${comp.stock}</span>
+                        <button class="btn-stock" onclick="modificarStock(${comp.id}, ${comp.stock + 1})">🔼</button>
+                    </div>
+                </td>
                 <td>${comp.datasheet_url ? `<a href="${comp.datasheet_url}" target="_blank">📄 PDF</a>` : 'Sin PDF'}</td>
                 <td>
-                    <button onclick='verEspecificaciones(${comp.id})'>🔍 Specs</button>
-                    <button class="btn-borrar" onclick='borrarComponente(${comp.id}, "${comp.mpn}")'>🗑️ Borrar</button>
+                    <button class="btn-accion" onclick='verEspecificaciones(${comp.id})'>🔍 Specs</button>
+                    <button class="btn-borrar" onclick='borrarComponente(${comp.id}, "${comp.mpn}")'>🗑️</button>
                 </td>
             </tr>`;
             cuerpo.innerHTML += fila;
         });
     }
 
+    async function modificarStock(id, nuevoStock) {
+        if (nuevoStock < 0) return;
+        
+        // Efecto visual instantáneo mientras carga
+        const idx = componentesDB.findIndex(c => c.id === id);
+        if (idx > -1) {
+            componentesDB[idx].stock = nuevoStock;
+            renderizarTabla(componentesDB);
+        }
+
+        try {
+            const respuesta = await fetch(`${API_URL}/componentes/${id}/stock`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ nuevo_stock: nuevoStock })
+            });
+            if (!respuesta.ok) throw new Error();
+        } catch (error) {
+            alert("❌ Error al guardar el stock en la nube.");
+            cargarDatosDesdeServidor(); // Revertir si falla
+        }
+    }
+
     function filtrarTabla() {
         const texto = document.getElementById("inputBuscador").value.toLowerCase();
-        const filtrados = componentesDB.filter(comp => 
-            comp.mpn.toLowerCase().includes(texto) || comp.nombre.toLowerCase().includes(texto)
-        );
+        const filtrados = componentesDB.filter(comp => comp.mpn.toLowerCase().includes(texto) || comp.nombre.toLowerCase().includes(texto));
         renderizarTabla(filtrados);
     }
 
     async function borrarComponente(id, mpn) {
-        const confirmacion = confirm(`¿Estás seguro de que deseas eliminar el componente ${mpn}?\nEsta acción no se puede deshacer.`);
-        if (!confirmacion) return;
-
+        if (!confirm(`¿Eliminar permanentemente ${mpn}?`)) return;
         try {
-            const respuesta = await fetch(`${API_URL}/componentes/${id}`, {
-                method: "DELETE"
-            });
-
-            if (respuesta.ok) {
-                alert(`✅ ${mpn} eliminado correctamente.`);
-                cargarDatosDesdeServidor(); // Recargar la tabla automáticamente
-            } else {
-                const data = await respuesta.json();
-                alert(`❌ Error al eliminar: ${data.detail}`);
-            }
-        } catch (error) {
-            alert("❌ Error de conexión con el servidor al intentar eliminar.");
-        }
+            const respuesta = await fetch(`${API_URL}/componentes/${id}`, { method: "DELETE" });
+            if (respuesta.ok) cargarDatosDesdeServidor();
+            else alert("❌ Error al eliminar.");
+        } catch (error) { alert("❌ Error de conexión."); }
     }
 
     function verEspecificaciones(id) {
         const comp = componentesDB.find(c => c.id === id);
-        document.getElementById("tituloModal").innerText = `Specs de: ${comp.mpn}`;
+        document.getElementById("tituloModal").innerText = `Specs: ${comp.mpn}`;
         const cuerpoSpecs = document.getElementById("cuerpoSpecs");
         cuerpoSpecs.innerHTML = "";
-        
         try {
-            if(comp.especificaciones && comp.especificaciones !== "{}") {
-                let specsObj = JSON.parse(comp.especificaciones);
-                for (const [parametro, valor] of Object.entries(specsObj)) {
-                    cuerpoSpecs.innerHTML += `<tr><td><strong>${parametro}</strong></td><td>${valor}</td></tr>`;
-                }
-            } else {
-                cuerpoSpecs.innerHTML = "<tr><td colspan='2'>No hay especificaciones registradas.</td></tr>";
-            }
-        } catch(e) {
-            cuerpoSpecs.innerHTML = "<tr><td colspan='2'>Error leyendo datos.</td></tr>";
-        }
+            let specsObj = JSON.parse(comp.especificaciones || "{}");
+            for (const [p, v] of Object.entries(specsObj)) cuerpoSpecs.innerHTML += `<tr><td><strong>${p}</strong></td><td>${v}</td></tr>`;
+        } catch(e) { cuerpoSpecs.innerHTML = "<tr><td colspan='2'>Error leyendo datos.</td></tr>"; }
         document.getElementById("modalSpecs").style.display = "block";
     }
-
-    function cerrarModal() {
-        document.getElementById("modalSpecs").style.display = "none";
-    }
-
+    function cerrarModal() { document.getElementById("modalSpecs").style.display = "none"; }
     window.onload = cargarDatosDesdeServidor;
 </script>
 </body>
