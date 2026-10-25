@@ -102,7 +102,7 @@
 </div>
 
 <script>
-    const API_URL = '[https://electro-api-backend.onrender.com](https://electro-api-backend.onrender.com)';
+    const API_URL = 'https://electro-api-backend.onrender.com';
     let componentesDisponibles = [];
 
     function mostrarError(mensaje) {
@@ -110,17 +110,27 @@
     }
 
     async function inicializar() {
+        document.getElementById("consolaErrores").innerHTML = ""; 
+        
         try {
             await cargarComponentesDropdown();
+        } catch (e) {
+            mostrarError("Fallo al cargar la lista de componentes: " + e.message);
+        }
+        
+        try {
             await cargarProyectos();
         } catch (e) {
-            mostrarError("Error al arrancar: " + e.message);
+            mostrarError("Fallo al cargar tus proyectos: " + e.message);
         }
     }
 
     async function cargarComponentesDropdown() {
         const res = await fetch(`${API_URL}/componentes`);
-        if (!res.ok) throw new Error("Fallo al obtener componentes");
+        if (!res.ok) {
+            const txt = await res.text();
+            throw new Error(`Status ${res.status} - ${txt}`);
+        }
         componentesDisponibles = await res.json();
         const select = document.getElementById("selectComponente");
         select.innerHTML = '<option value="">Selecciona un componente...</option>';
@@ -137,67 +147,66 @@
                 method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ nombre })
             });
             if (res.ok) { document.getElementById("nombreProyecto").value = ""; cargarProyectos(); }
-            else alert("Error o proyecto duplicado");
+            else { const err = await res.text(); alert("Error al crear: " + err); }
         } catch(e) { mostrarError("Error crear proy: " + e.message); }
     }
 
     async function cargarProyectos() {
         const contenedor = document.getElementById("contenedorProyectos");
         const selectP = document.getElementById("selectProyecto");
-        try {
-            const res = await fetch(`${API_URL}/proyectos`);
-            if (!res.ok) throw new Error("Fallo al obtener proyectos");
-            const proyectos = await res.json();
+        
+        const res = await fetch(`${API_URL}/proyectos`);
+        if (!res.ok) {
+            const txt = await res.text();
+            throw new Error(`Status ${res.status} - ${txt}`);
+        }
+        
+        const proyectos = await res.json();
+        selectP.innerHTML = '<option value="">Selecciona un proyecto...</option>';
+        contenedor.innerHTML = "";
+
+        if (proyectos.length === 0) {
+            contenedor.innerHTML = "<p>No tienes proyectos creados aún.</p>";
+            return;
+        }
+
+        for (let p of proyectos) {
+            selectP.innerHTML += `<option value="${p.id}">${p.nombre}</option>`;
             
-            selectP.innerHTML = '<option value="">Selecciona un proyecto...</option>';
-            contenedor.innerHTML = "";
-
-            if (proyectos.length === 0) {
-                contenedor.innerHTML = "<p>No tienes proyectos creados aún.</p>";
-                return;
-            }
-
-            for (let p of proyectos) {
-                selectP.innerHTML += `<option value="${p.id}">${p.nombre}</option>`;
+            try {
+                const resBOM = await fetch(`${API_URL}/lista_materiales/${p.id}`);
+                if (!resBOM.ok) throw new Error(await resBOM.text());
                 
-                try {
-                    const resBOM = await fetch(`${API_URL}/lista_materiales/${p.id}`);
-                    const bom = await resBOM.json();
+                const bom = await resBOM.json();
+                let tablaHTML = `<table class="tabla-bom"><tr><th>MPN</th><th>Req.</th><th>Stock</th><th>❌</th></tr>`;
+                let puedeEnsamblar = bom.length > 0;
+
+                bom.forEach(item => {
+                    let estadoStock = item.stock >= item.cantidad_necesaria ? '<span class="stock-ok">✓</span>' : '<span class="stock-falta">✗</span>';
+                    if (item.stock < item.cantidad_necesaria) puedeEnsamblar = false;
                     
-                    if (!Array.isArray(bom)) throw new Error(JSON.stringify(bom));
+                    tablaHTML += `<tr>
+                        <td>${item.mpn}</td>
+                        <td>${item.cantidad_necesaria}</td>
+                        <td>${item.stock} ${estadoStock}</td>
+                        <td><button class="btn-eliminar" onclick="quitarComponente(${item.id})">X</button></td>
+                    </tr>`;
+                });
+                tablaHTML += `</table>`;
 
-                    let tablaHTML = `<table class="tabla-bom"><tr><th>MPN</th><th>Req.</th><th>Stock</th><th>❌</th></tr>`;
-                    let puedeEnsamblar = bom.length > 0;
-
-                    bom.forEach(item => {
-                        let estadoStock = item.stock >= item.cantidad_necesaria ? '<span class="stock-ok">✓</span>' : '<span class="stock-falta">✗</span>';
-                        if (item.stock < item.cantidad_necesaria) puedeEnsamblar = false;
-                        
-                        tablaHTML += `<tr>
-                            <td>${item.mpn}</td>
-                            <td>${item.cantidad_necesaria}</td>
-                            <td>${item.stock} ${estadoStock}</td>
-                            <td><button class="btn-eliminar" onclick="quitarComponente(${item.id})">X</button></td>
-                        </tr>`;
-                    });
-                    tablaHTML += `</table>`;
-
-                    contenedor.innerHTML += `
-                        <div class="tarjeta-proyecto">
-                            <button class="btn-eliminar btn-eliminar-proy" onclick="eliminarProyecto(${p.id})">Eliminar</button>
-                            <h3>${p.nombre}</h3>
-                            ${bom.length === 0 ? '<p>No hay componentes aún.</p>' : tablaHTML}
-                            <button class="btn-ensamblar" style="opacity: ${puedeEnsamblar ? '1' : '0.5'}; cursor: ${puedeEnsamblar ? 'pointer' : 'not-allowed'};" onclick="ensamblarProyecto(${p.id})">
-                                ${puedeEnsamblar ? '🔧 Ensamblar Proyecto' : '⚠️ Stock Insuficiente'}
-                            </button>
-                        </div>
-                    `;
-                } catch (eBOM) {
-                    contenedor.innerHTML += `<div class="tarjeta-proyecto"><p style="color:red;">Error cargando BOM del proyecto ${p.nombre}: ${eBOM.message}</p></div>`;
-                }
+                contenedor.innerHTML += `
+                    <div class="tarjeta-proyecto">
+                        <button class="btn-eliminar btn-eliminar-proy" onclick="eliminarProyecto(${p.id})">Eliminar</button>
+                        <h3>${p.nombre}</h3>
+                        ${bom.length === 0 ? '<p>No hay componentes aún.</p>' : tablaHTML}
+                        <button class="btn-ensamblar" style="opacity: ${puedeEnsamblar ? '1' : '0.5'}; cursor: ${puedeEnsamblar ? 'pointer' : 'not-allowed'};" onclick="ensamblarProyecto(${p.id})">
+                            ${puedeEnsamblar ? '🔧 Ensamblar Proyecto' : '⚠️ Stock Insuficiente'}
+                        </button>
+                    </div>
+                `;
+            } catch (eBOM) {
+                contenedor.innerHTML += `<div class="tarjeta-proyecto"><p style="color:red;">Error cargando BOM de ${p.nombre}: ${eBOM.message}</p></div>`;
             }
-        } catch(e) {
-            contenedor.innerHTML = `<p style="color:red;">Fallo al cargar proyectos: ${e.message}</p>`;
         }
     }
 
@@ -235,7 +244,8 @@
             alert("Ensamblaje exitoso. Stock actualizado.");
             inicializar();
         } else {
-            alert("Error al ensamblar. Revisa el stock.");
+            const err = await res.text();
+            alert("Error al ensamblar: " + err);
         }
     }
 
