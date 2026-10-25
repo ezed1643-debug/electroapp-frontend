@@ -21,7 +21,6 @@
         th, td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; transition: 0.3s; font-size: 14px; }
         th { background-color: #0056b3; color: white; }
         tr:hover { background-color: #f1f1f1; }
-        a { color: #0056b3; text-decoration: none; font-weight: bold; }
         
         /* Botones generales */
         button { border: none; border-radius: 5px; cursor: pointer; transition: 0.3s; }
@@ -29,6 +28,8 @@
         .btn-accion:hover { background-color: #218838; }
         .btn-borrar { background-color: #dc3545; color: white; padding: 6px 10px; }
         .btn-borrar:hover { background-color: #c82333; }
+        .btn-pdf { background-color: #17a2b8; color: white; padding: 6px 10px; font-weight: bold; }
+        .btn-pdf:hover { background-color: #138496; }
         
         /* Botones de Stock (Flechas) */
         .controles-stock { display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: bold; }
@@ -149,6 +150,7 @@
         if (datos.length === 0) { cuerpo.innerHTML = "<tr><td colspan='5' style='text-align:center;'>No hay componentes.</td></tr>"; return; }
 
         datos.forEach(comp => {
+            // Reemplazo blindado: Usamos window.open en lugar de una etiqueta de enlace tradicional
             let fila = `<tr>
                 <td><strong>${comp.mpn}</strong></td>
                 <td>${comp.nombre}</td>
@@ -159,7 +161,7 @@
                         <button class="btn-stock" onclick="modificarStock(${comp.id}, ${comp.stock + 1})">🔼</button>
                     </div>
                 </td>
-                <td>${comp.datasheet_url ? `<a href="${comp.datasheet_url}" target="_blank">📄 PDF</a>` : 'Sin PDF'}</td>
+                <td>${comp.datasheet_url ? `<button class="btn-pdf" onclick="window.open('${comp.datasheet_url}', '_blank')">📄 Ver PDF</button>` : 'Sin PDF'}</td>
                 <td>
                     <button class="btn-accion" onclick='verEspecificaciones(${comp.id})'>🔍 Specs</button>
                     <button class="btn-borrar" onclick='borrarComponente(${comp.id}, "${comp.mpn}")'>🗑️</button>
@@ -218,7 +220,9 @@
         } catch(e) { cuerpoSpecs.innerHTML = "<tr><td colspan='2'>Error leyendo datos.</td></tr>"; }
         document.getElementById("modalSpecs").style.display = "block";
     }
+    
     function cerrarModal() { document.getElementById("modalSpecs").style.display = "none"; }
+    
     window.onload = cargarDatosDesdeServidor;
 </script>
 </body>
