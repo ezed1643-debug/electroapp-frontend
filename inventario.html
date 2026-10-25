@@ -8,7 +8,6 @@
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; padding: 15px; margin: 0; box-sizing: border-box; transition: 0.3s; }
         .contenedor { width: 100%; max-width: 1000px; margin: 0 auto; background: white; padding: 15px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); box-sizing: border-box; transition: 0.3s; }
         
-        /* Solución para Celulares: Tabla deslizable sin romper la pantalla */
         .tabla-responsiva { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; margin-top: 15px; }
         
         .cabecera { display: flex; flex-direction: column; gap: 10px; border-bottom: 2px solid #0056b3; padding-bottom: 10px; transition: 0.3s; }
@@ -28,10 +27,12 @@
         .btn-accion:hover { background-color: #218838; }
         .btn-borrar { background-color: #dc3545; color: white; padding: 6px 10px; }
         .btn-borrar:hover { background-color: #c82333; }
-        .btn-pdf { background-color: #17a2b8; color: white; padding: 6px 10px; font-weight: bold; }
+        
+        /* NUEVO BOTON PDF COMO ENLACE REAL */
+        .btn-pdf { background-color: #17a2b8; color: white; padding: 6px 10px; font-weight: bold; border-radius: 5px; text-decoration: none; display: inline-block; text-align: center; }
         .btn-pdf:hover { background-color: #138496; }
         
-        /* Botones de Stock (Flechas) */
+        /* Botones de Stock */
         .controles-stock { display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: bold; }
         .btn-stock { background-color: #e9ecef; color: #333; padding: 4px 8px; font-size: 12px; border-radius: 4px; box-shadow: 0 2px 2px rgba(0,0,0,0.1); }
         .btn-stock:hover { background-color: #d3d9df; }
@@ -86,7 +87,6 @@
             }
         });
     </script>
-    <!-- ================= FIN MODO OSCURO INDESTRUCTIBLE ================= -->
 </head>
 <body>
 
@@ -150,7 +150,9 @@
         if (datos.length === 0) { cuerpo.innerHTML = "<tr><td colspan='5' style='text-align:center;'>No hay componentes.</td></tr>"; return; }
 
         datos.forEach(comp => {
-            // Reemplazo blindado: Usamos window.open en lugar de una etiqueta de enlace tradicional
+            // SOLUCIÓN DEFINITIVA: Armamos el enlace en vivo. Esto arregla automáticamente TODOS los componentes viejos y nuevos.
+            const urlSeguraPDF = `https://www.alldatasheet.com/view.jsp?Searchword=${encodeURIComponent(comp.mpn)}`;
+
             let fila = `<tr>
                 <td><strong>${comp.mpn}</strong></td>
                 <td>${comp.nombre}</td>
@@ -161,7 +163,9 @@
                         <button class="btn-stock" onclick="modificarStock(${comp.id}, ${comp.stock + 1})">🔼</button>
                     </div>
                 </td>
-                <td>${comp.datasheet_url ? `<button class="btn-pdf" onclick="window.open('${comp.datasheet_url}', '_blank')">📄 Ver PDF</button>` : 'Sin PDF'}</td>
+                <td>
+                    <a href="${urlSeguraPDF}" target="_blank" rel="noopener noreferrer" class="btn-pdf">📄 Ver PDF</a>
+                </td>
                 <td>
                     <button class="btn-accion" onclick='verEspecificaciones(${comp.id})'>🔍 Specs</button>
                     <button class="btn-borrar" onclick='borrarComponente(${comp.id}, "${comp.mpn}")'>🗑️</button>
@@ -174,7 +178,6 @@
     async function modificarStock(id, nuevoStock) {
         if (nuevoStock < 0) return;
         
-        // Efecto visual instantáneo mientras carga
         const idx = componentesDB.findIndex(c => c.id === id);
         if (idx > -1) {
             componentesDB[idx].stock = nuevoStock;
@@ -190,7 +193,7 @@
             if (!respuesta.ok) throw new Error();
         } catch (error) {
             alert("❌ Error al guardar el stock en la nube.");
-            cargarDatosDesdeServidor(); // Revertir si falla
+            cargarDatosDesdeServidor();
         }
     }
 
