@@ -2,204 +2,190 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestión de Proyectos</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; padding: 20px; transition: 0.3s; margin: 0; }
-        .contenedor { max-width: 900px; margin: 0 auto; box-sizing: border-box; width: 100%; }
-        .tarjeta { background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: 0.3s; box-sizing: border-box; }
-        h2, h3 { color: #333; margin-top: 0; transition: 0.3s; font-size: 20px; }
-        h2 { border-bottom: 2px solid #0056b3; padding-bottom: 10px; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f0f2f5; padding: 15px; margin: 0; }
+        .contenedor { max-width: 1000px; margin: 0 auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        h2, h3 { color: #333; margin-top: 0; }
         
-        input, select, button { padding: 10px; margin: 5px 0; border-radius: 5px; border: 1px solid #ccc; font-size: 16px; transition: 0.3s; box-sizing: border-box; }
-        input[type="text"], select { width: 100%; }
+        .formulario-grupo { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
+        input, select { padding: 10px; border: 1px solid #ccc; border-radius: 5px; flex-grow: 1; }
+        button { padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; color: white; transition: 0.2s; }
         
-        button { background-color: #0056b3; color: white; border: none; cursor: pointer; font-weight: bold; width: 100%; transition: 0.3s; }
-        button:hover { background-color: #004494; }
-        .btn-accion { background-color: #28a745; width: auto; padding: 10px 20px; }
-        .btn-accion:hover { background-color: #218838; }
-        .btn-peligro { background-color: #dc3545; font-size: 16px; padding: 15px; margin-top: 20px; white-space: normal; }
-        .btn-peligro:hover { background-color: #c82333; }
+        .btn-crear { background-color: #0056b3; }
+        .btn-crear:hover { background-color: #004494; }
+        .btn-agregar { background-color: #28a745; }
+        .btn-ensamblar { background-color: #17a2b8; width: 100%; margin-top: 10px; font-size: 16px; }
+        .btn-eliminar { background-color: #dc3545; padding: 5px 10px; font-size: 12px; }
+        .btn-eliminar-proy { background-color: #dc3545; float: right; }
 
-        .fila-agregar { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
-        @media(min-width: 768px) { .fila-agregar { flex-direction: row; align-items: center; } .fila-agregar select { flex-grow: 2; } .fila-agregar input { width: 100px; } }
-
-        .tabla-responsiva { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; margin-top: 15px; }
-        table { width: 100%; border-collapse: collapse; min-width: 400px; }
-        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; transition: 0.3s; }
-        th { background-color: #6c757d; color: white; }
+        .grilla-proyectos { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+        .tarjeta-proyecto { background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 8px; padding: 15px; position: relative; }
         
-        .mensaje { padding: 10px; margin-top: 15px; border-radius: 5px; display: none; font-weight: bold; text-align: center; }
-        .exito { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-        .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
-    </style>
+        .tabla-bom { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
+        .tabla-bom th, .tabla-bom td { border-bottom: 1px solid #ddd; padding: 8px; text-align: left; }
+        .tabla-bom th { background-color: #e9ecef; }
+        
+        .stock-ok { color: green; font-weight: bold; }
+        .stock-falta { color: red; font-weight: bold; }
 
-    <!-- ================= INICIO MODO OSCURO INDESTRUCTIBLE ================= -->
-    <style>
+        /* MODO OSCURO */
         body.dark-mode { background-color: #121212; color: #e0e0e0; }
-        body.dark-mode .tarjeta { background-color: #1e1e2d; color: #fff; box-shadow: 0 4px 6px rgba(0,0,0,0.5); }
-        body.dark-mode h2, body.dark-mode h3 { color: #4da3ff; border-bottom-color: #0f3460; }
-        body.dark-mode th { background-color: #0f3460; color: white; border-bottom: none; }
-        body.dark-mode td { border-bottom-color: #2a2a35; }
-        body.dark-mode tr:hover { background-color: #2a2a35; }
-        body.dark-mode input, body.dark-mode select { background-color: #2a2a35; color: white; border: 1px solid #444; }
-        body.dark-mode input:focus, body.dark-mode select:focus { border-color: #4da3ff; }
-        body.dark-mode .exito { background-color: #1b4332; color: #74c69d; border-color: #2d6a4f; }
-        body.dark-mode .error { background-color: #5c1a1b; color: #ff9999; border-color: #8a2527; }
+        body.dark-mode .contenedor { background-color: #1e1e2d; box-shadow: 0 4px 6px rgba(0,0,0,0.5); }
+        body.dark-mode .tarjeta-proyecto { background-color: #2a2a35; border-color: #444; }
+        body.dark-mode h2, body.dark-mode h3 { color: #4da3ff; }
+        body.dark-mode input, body.dark-mode select { background-color: #2a2a35; color: white; border-color: #444; }
+        body.dark-mode .tabla-bom th { background-color: #0f3460; color: white; border-bottom: none; }
+        body.dark-mode .tabla-bom td { border-bottom-color: #444; }
     </style>
     <script>
         function blindarModoOscuro() {
-            try {
-                if (window.parent && window.parent.document.body.classList.contains('dark-mode')) {
-                    document.documentElement.classList.add('dark-mode');
-                    if (document.body) document.body.classList.add('dark-mode');
-                    return;
-                }
-            } catch(e) {}
-            if (localStorage.getItem('tema') === 'oscuro') {
-                document.documentElement.classList.add('dark-mode');
-                if (document.body) document.body.classList.add('dark-mode');
-            }
+            if (localStorage.getItem('tema') === 'oscuro') document.body.classList.add('dark-mode');
         }
-        blindarModoOscuro();
         document.addEventListener("DOMContentLoaded", blindarModoOscuro);
-        document.addEventListener("click", blindarModoOscuro);
-        window.addEventListener('message', (event) => {
-            if (event.data.tema === 'oscuro') {
-                document.documentElement.classList.add('dark-mode');
-                if (document.body) document.body.classList.add('dark-mode');
-            } else if (event.data.tema === 'claro') {
-                document.documentElement.classList.remove('dark-mode');
-                if (document.body) document.body.classList.remove('dark-mode');
-            }
-        });
     </script>
-    <!-- ================= FIN MODO OSCURO INDESTRUCTIBLE ================= -->
 </head>
 <body>
 
 <div class="contenedor">
-    <h2>🛠️ Gestión de Proyectos (BOM)</h2>
-
-    <div class="tarjeta">
-        <h3>1. Crear Nuevo Proyecto</h3>
-        <input type="text" id="nombreProyecto" placeholder="Ej: Controlador de Motor DC">
-        <button onclick="crearProyecto()">Crear Proyecto</button>
+    <h2>🛠️ Crear Nuevo Proyecto</h2>
+    <div class="formulario-grupo">
+        <input type="text" id="nombreProyecto" placeholder="Ej: Amplificador de Audio">
+        <button class="btn-crear" onclick="crearProyecto()">Crear Proyecto</button>
     </div>
+</div>
 
-    <div class="tarjeta">
-        <h3>2. Lista de Materiales</h3>
-        <select id="selectProyecto" onchange="cargarMateriales()">
-            <option value="">-- Selecciona un proyecto para ver/editar --</option>
-        </select>
+<div class="contenedor">
+    <h2>➕ Agregar Componente a Proyecto</h2>
+    <div class="formulario-grupo">
+        <select id="selectProyecto"><option value="">Selecciona un proyecto...</option></select>
+        <select id="selectComponente"><option value="">Selecciona un componente...</option></select>
+        <input type="number" id="cantidadRequerida" placeholder="Cantidad" min="1" style="max-width: 100px;">
+        <button class="btn-agregar" onclick="agregarComponente()">Agregar a BOM</button>
+    </div>
+</div>
 
-        <div class="fila-agregar">
-            <select id="selectComponente">
-                <option value="">-- Selecciona un componente del stock --</option>
-            </select>
-            <input type="number" id="cantidadReq" placeholder="Cant." min="1" value="1">
-            <button class="btn-accion" onclick="agregarComponenteABom()">Añadir</button>
-        </div>
-
-        <div class="tabla-responsiva">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Componente (MPN)</th>
-                        <th>Cantidad Requerida</th>
-                    </tr>
-                </thead>
-                <tbody id="cuerpoBom">
-                    <tr><td colspan="2" style="text-align:center;">Selecciona un proyecto arriba.</td></tr>
-                </tbody>
-            </table>
-        </div>
-
-        <button class="btn-peligro" onclick="ensamblarProyecto()">🚀 ENSAMBLAR PROYECTO</button>
-        <div id="mensajeNotificacion" class="mensaje"></div>
+<div class="contenedor" style="background: transparent; box-shadow: none; padding: 0;">
+    <h2>📋 Mis Proyectos</h2>
+    <div id="contenedorProyectos" class="grilla-proyectos">
+        <!-- Las tarjetas se generan aquí -->
     </div>
 </div>
 
 <script>
-    const API_URL = 'https://electro-api-backend.onrender.com';
+    const API_URL = '[https://electro-api-backend.onrender.com](https://electro-api-backend.onrender.com)';
+    let componentesDisponibles = [];
 
-    function mostrarMensaje(texto, esError = false) {
-        const div = document.getElementById("mensajeNotificacion");
-        div.textContent = texto;
-        div.style.display = "block";
-        div.className = esError ? "mensaje error" : "mensaje exito";
-        setTimeout(() => div.style.display = "none", 4000);
+    async function inicializar() {
+        await cargarComponentesDropdown();
+        await cargarProyectos();
     }
 
-    async function inicializarPagina() {
-        try {
-            const resComp = await fetch(`${API_URL}/componentes`);
-            const componentes = await resComp.json();
-            const selectComp = document.getElementById("selectComponente");
-            componentes.forEach(c => { selectComp.innerHTML += `<option value="${c.id}">${c.mpn} (Stock: ${c.stock})</option>`; });
-
-            const resProy = await fetch(`${API_URL}/proyectos`);
-            const proyectos = await resProy.json();
-            const selectProy = document.getElementById("selectProyecto");
-            proyectos.forEach(p => { selectProy.innerHTML += `<option value="${p.id}">${p.nombre}</option>`; });
-        } catch (e) { console.error("Error cargando datos:", e); }
+    async function cargarComponentesDropdown() {
+        const res = await fetch(`${API_URL}/componentes`);
+        componentesDisponibles = await res.json();
+        const select = document.getElementById("selectComponente");
+        select.innerHTML = '<option value="">Selecciona un componente...</option>';
+        componentesDisponibles.forEach(c => {
+            select.innerHTML += `<option value="${c.id}">[${c.mpn}] ${c.nombre} (Stock: ${c.stock})</option>`;
+        });
     }
 
     async function crearProyecto() {
         const nombre = document.getElementById("nombreProyecto").value;
-        if(!nombre) return alert("Escribe un nombre.");
-        try {
-            const res = await fetch(`${API_URL}/proyectos`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ nombre: nombre }) });
-            if(res.ok) { mostrarMensaje("Proyecto creado."); document.getElementById("nombreProyecto").value = ""; }
-        } catch(e) { mostrarMensaje("Error al crear el proyecto.", true); }
+        if (!nombre) return alert("Ingresa un nombre");
+        const res = await fetch(`${API_URL}/proyectos`, {
+            method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ nombre })
+        });
+        if (res.ok) { document.getElementById("nombreProyecto").value = ""; cargarProyectos(); }
+        else alert("Error o proyecto duplicado");
     }
 
-    async function agregarComponenteABom() {
-        const proyectoId = document.getElementById("selectProyecto").value;
-        const componenteId = document.getElementById("selectComponente").value;
-        const cantidad = document.getElementById("cantidadReq").value;
-
-        if(!proyectoId || !componenteId || cantidad < 1) return alert("Datos inválidos.");
-
-        try {
-            const res = await fetch(`${API_URL}/lista_materiales`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ proyecto_id: parseInt(proyectoId), componente_id: parseInt(componenteId), cantidad: parseInt(cantidad) }) });
-            if(res.ok) { cargarMateriales(); mostrarMensaje("Componente añadido."); }
-        } catch(e) { mostrarMensaje("Error al añadir componente.", true); }
-    }
-
-    async function cargarMateriales() {
-        const proyectoId = document.getElementById("selectProyecto").value;
-        const cuerpo = document.getElementById("cuerpoBom");
+    async function cargarProyectos() {
+        const res = await fetch(`${API_URL}/proyectos`);
+        const proyectos = await res.json();
         
-        if(!proyectoId) { cuerpo.innerHTML = '<tr><td colspan="2" style="text-align:center;">Selecciona un proyecto.</td></tr>'; return; }
+        const selectP = document.getElementById("selectProyecto");
+        selectP.innerHTML = '<option value="">Selecciona un proyecto...</option>';
+        const contenedor = document.getElementById("contenedorProyectos");
+        contenedor.innerHTML = "";
 
-        try {
-            const res = await fetch(`${API_URL}/lista_materiales/${proyectoId}`);
-            const materiales = await res.json();
+        for (let p of proyectos) {
+            selectP.innerHTML += `<option value="${p.id}">${p.nombre}</option>`;
             
-            cuerpo.innerHTML = "";
-            if(materiales.length === 0) { cuerpo.innerHTML = '<tr><td colspan="2" style="text-align:center;">BOM vacío.</td></tr>'; return; }
+            // Cargar BOM del proyecto
+            const resBOM = await fetch(`${API_URL}/lista_materiales/${p.id}`);
+            const bom = await resBOM.json();
+            
+            let tablaHTML = `<table class="tabla-bom"><tr><th>MPN</th><th>Req.</th><th>Stock</th><th>❌</th></tr>`;
+            let puedeEnsamblar = bom.length > 0;
 
-            materiales.forEach(m => {
-                cuerpo.innerHTML += `<tr><td><strong>${m.mpn}</strong> (${m.nombre})</td><td>${m.cantidad_necesaria}</td></tr>`;
+            bom.forEach(item => {
+                let estadoStock = item.stock >= item.cantidad_necesaria ? '<span class="stock-ok">✓</span>' : '<span class="stock-falta">✗</span>';
+                if (item.stock < item.cantidad_necesaria) puedeEnsamblar = false;
+                
+                tablaHTML += `<tr>
+                    <td>${item.mpn}</td>
+                    <td>${item.cantidad_necesaria}</td>
+                    <td>${item.stock} ${estadoStock}</td>
+                    <td><button class="btn-eliminar" onclick="quitarComponente(${item.id})">X</button></td>
+                </tr>`;
             });
-        } catch (e) { cuerpo.innerHTML = '<tr><td colspan="2" style="text-align:center; color:red;">Error cargando.</td></tr>'; }
+            tablaHTML += `</table>`;
+
+            contenedor.innerHTML += `
+                <div class="tarjeta-proyecto">
+                    <button class="btn-eliminar btn-eliminar-proy" onclick="eliminarProyecto(${p.id})">Eliminar</button>
+                    <h3>${p.nombre}</h3>
+                    ${bom.length === 0 ? '<p>No hay componentes aún.</p>' : tablaHTML}
+                    <button class="btn-ensamblar" style="opacity: ${puedeEnsamblar ? '1' : '0.5'}; cursor: ${puedeEnsamblar ? 'pointer' : 'not-allowed'};" onclick="ensamblarProyecto(${p.id})">
+                        ${puedeEnsamblar ? '🔧 Ensamblar Proyecto' : '⚠️ Stock Insuficiente'}
+                    </button>
+                </div>
+            `;
+        }
     }
 
-    async function ensamblarProyecto() {
-        const proyectoId = document.getElementById("selectProyecto").value;
-        if(!proyectoId) return alert("Selecciona el proyecto.");
-        if(!confirm("¿Estás seguro? Esto restará stock.")) return;
+    async function agregarComponente() {
+        const proyecto_id = document.getElementById("selectProyecto").value;
+        const componente_id = document.getElementById("selectComponente").value;
+        const cantidad = document.getElementById("cantidadRequerida").value;
+        
+        if (!proyecto_id || !componente_id || !cantidad) return alert("Completa todos los campos");
 
-        try {
-            const res = await fetch(`${API_URL}/ensamblar_proyecto/${proyectoId}`, { method: "POST" });
-            const data = await res.json();
-            if(!res.ok) mostrarMensaje("Error: " + data.detail, true);
-            else mostrarMensaje("¡Éxito! " + data.mensaje);
-        } catch(e) { mostrarMensaje("Error de conexión.", true); }
+        await fetch(`${API_URL}/lista_materiales`, {
+            method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ proyecto_id: parseInt(proyecto_id), componente_id: parseInt(componente_id), cantidad: parseInt(cantidad) })
+        });
+        document.getElementById("cantidadRequerida").value = "";
+        cargarProyectos();
     }
 
-    window.onload = inicializarPagina;
+    async function quitarComponente(item_id) {
+        if(!confirm("¿Quitar componente del proyecto?")) return;
+        await fetch(`${API_URL}/lista_materiales/${item_id}`, { method: "DELETE" });
+        cargarProyectos();
+    }
+
+    async function eliminarProyecto(id) {
+        if(!confirm("¿Eliminar proyecto y su lista de materiales?")) return;
+        await fetch(`${API_URL}/proyectos/${id}`, { method: "DELETE" });
+        cargarProyectos();
+    }
+
+    async function ensamblarProyecto(id) {
+        if(!confirm("¿Proceder con el ensamblaje? Se descontará el stock.")) return;
+        const res = await fetch(`${API_URL}/ensamblar_proyecto/${id}`, { method: "POST" });
+        if (res.ok) {
+            alert("Ensamblaje exitoso. Stock actualizado.");
+            inicializar(); // Recargar proyectos y dropdowns
+        } else {
+            alert("Error: Stock insuficiente u otro problema.");
+        }
+    }
+
+    window.onload = inicializar;
 </script>
 </body>
 </html>
